@@ -1,10 +1,11 @@
 const express = require('express');
 
 const { validateGenre, Genre } = require('../models/genre');
+const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
 
 
 const router = express.Router();
-
 
 //HTTP GET METHODS
 router.get('/', async (req, res) => {
@@ -23,8 +24,8 @@ router.get('/:id', async (req, res) => {
 });
 
 
-//HTTP POST METHOD
-router.post('/', async (req, res) => {
+//HTTP POST METHOD ==> users may require a token to any operation on this end-point
+router.post('/', auth, async (req, res) => {
     const { error } = validateGenre(req.body);
      if(error) return res.status(400).send(error.details[0].message);
 
@@ -46,8 +47,8 @@ router.put('/:id', async (req, res) => {
 });
 
 
-//HTTP DELETE REQUEST
-router.delete('/:id', async (req, res) => {
+//HTTP DELETE REQUEST ==> users will have to be both authentic and admin to perform this operation 
+router.delete('/:id', [auth, admin], async (req, res) => {
     const genre = await Genre.findByIdAndRemove(req.params.id);
     if (!genre) return res.status(404).send('The requested genre does not exist');
 
